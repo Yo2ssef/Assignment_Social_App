@@ -10,8 +10,9 @@ const authentication = (tokenType = enum_1.TokenTypeEnum.ACCESS) => {
         const lang = Number(req.headers["accept-language"] ?? enum_1.languageEnum.EN);
         const token = req.headers["authorization"];
         const validateData = (0, auth_validation_1.tokenSchema)(lang).safeParse({ token });
-        if (!validateData.success)
+        if (!validateData.success) {
             throw new exception_1.BadRequestException("Validation Error.", validateData.error.issues);
+        }
         const { token: validatedToken } = validateData.data;
         const { user, payload } = await service_1.tokenService.decodeToken({ token: validatedToken, tokenType });
         req.user = user;

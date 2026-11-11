@@ -28,14 +28,19 @@ export const allUsersSchema = (lang: languageEnum) => {
     return z.object({
         query: z.strictObject({
             userName: z.string().min(3).max(20).regex(/^[a-zA-Z]+(?: [a-zA-Z]+)?$/).optional(),
-            page: z.coerce.number().optional(),
-            limit: z.coerce.number().optional()
+            page: z.coerce.number().default(1),
+            limit: z.coerce.number().default(5)
         })
     })
 }
 export const userProfileImageSchema = (lang: languageEnum) => {
     return z.object({
         file: file({ lang, fieldname: "avatar" }).optional()
+    })
+}
+export const coverImageSchema = (lang: languageEnum) => {
+    return z.object({
+        files: z.array(file({ lang, fieldname: "attachment" })).max(2).optional()
     })
 }
 export const suggestionsSchema = (lang: languageEnum) => {

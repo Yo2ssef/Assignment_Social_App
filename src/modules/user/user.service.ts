@@ -1,20 +1,20 @@
 import { RoleUserEnum } from '../../common/enum';
 import { NotFoundException } from '../../common/exception';
-import { FollowRepository, UserRepository } from '../../common/repository';
+import { followRepository, FollowRepository, userRepository, UserRepository } from '../../common/repository';
 import { toObjectID } from '../../common/utils';
 import { HUser } from '../../database/model';
 import { AllUsersDto, UpdateDto } from './dto';
-import { cloudService, CloudService } from './../../common/service';
-import { IFile } from '../../common/types';
-
+import { FileType } from '../../common/types';
+import { IFollowResponse } from './entities/user.entities';
+import { CloudService, cloudService } from '../../common/service';
 export class UserService {
-    private userRepository: UserRepository;
-    private followRepository: FollowRepository;
+    private readonly userRepository: UserRepository;
+    private readonly followRepository: FollowRepository;
     private cloudService: CloudService;
     constructor() {
-        this.userRepository = new UserRepository()
-        this.followRepository = new FollowRepository()
-        this.cloudService = cloudService
+        this.userRepository = userRepository;
+        this.followRepository = followRepository;
+        this.cloudService = cloudService;
     }
     private selectsUserList(): string {
         return "_id firstName lastName image coverImage isPrivate"
@@ -33,7 +33,7 @@ export class UserService {
                 lean: true
             },
             select: "following createdAt -_id"
-        })
+        }) ?? []
         const following = await this.followRepository.find({
             filter: { follower: user._id },
             options: {
@@ -41,33 +41,52 @@ export class UserService {
                 lean: true
             },
             select: "following createdAt -_id"
-        })
+        }) ?? []
         return {
             followers: followers?.map(ele => ({ ...ele.follower, followAt: ele.createdAt })),
             following: following?.map(ele => ({ ...ele.following, followingAt: ele.createdAt }))
         }
     }
-    async uploadProfileImage(file: IFile, user: HUser): Promise<string> {
-        const key = await this.cloudService.uploadAsset({
+
+    async uploadProfileImage(file: FileType, user: HUser) {
+        if (user.image?.idImage) {
+            await this.cloudService.deleteAsset(user.image?.idImage);
+        }
+        const avatar = await this.cloudService.uploadImage({
             file,
-            folder: `user/${user._id.toString()}`
+            nameFolder: `profile/${user._id}/avatar`
         })
-        user.image = key
+        user.image = avatar
         await user.save()
-        return key
+        return user;
     }
+
+    async uploadCoverImage(files: FileType[], user: HUser) {
+        if (user.coverImage?.length) {
+            await this.cloudService.deleteAssets(user.coverImage)
+        }
+        const coverImages = files?.length
+            ? await this.cloudService.uploadImages({ files, nameFolder: `profile/${user._id}/cover` })
+            : [];
+        user.coverImage = coverImages
+        await user.save()
+        return user
+    }
+
     async profile(user: HUser) {
         const { followers, following } = await this.getFollowersAndFollowing(user)
         user.password = undefined
         return { user, followers, following }
     }
-    async update({ userName, phone, gender, dateOfBirth }: UpdateDto["body"], { _id }: HUser) {
+
+    async update({ userName, phone, gender, dateOfBirth }: UpdateDto["body"], { _id }: HUser): Promise<HUser> {
         const user = await this.userRepository.findByIdAndUpdate({
             id: _id,
             update: { userName, phone, gender, dateOfBirth }
         })
-        return user
+        return user as HUser
     }
+
     async allUsers({ userName, page = 1, limit = 5 }: AllUsersDto["query"], user: HUser) {
         const users = await this.userRepository.paginate({
             filter: userName ? {
@@ -86,13 +105,14 @@ export class UserService {
         })
         return users
     }
+
     async getUser({ id }: { id: string }, user: HUser) {
         if (id === user._id.toString()) return this.profile(user)
         const account = await this.userRepository.findById({
             id: toObjectID(id),
             select: this.selectsPublicProfile(),
         })
-        if (!account) throw new NotFoundException("User not found.")
+        if (!account) throw new NotFoundException("User not found.");
         const { followers, following } = await this.getFollowersAndFollowing(account)
         if (account?.isPrivate) {
             return {
@@ -109,8 +129,11 @@ export class UserService {
         }
         return { account, followers, following }
     }
-    async follow({ id }: { id: string }, user: HUser) {
-        if (id === user._id.toString()) throw new NotFoundException("You can't follow yourself.")
+
+    async follow({ id }: { id: string }, user: HUser): Promise<IFollowResponse> {
+        if (id === user._id.toString()) {
+            throw new NotFoundException("You can't follow yourself.")
+        }
         const existingFollow = await this.followRepository.findOneAndDelete({
             filter: {
                 follower: user._id,
@@ -118,16 +141,17 @@ export class UserService {
             }
         })
         if (existingFollow) {
-            return { followed: false, message: "Unfollowed successfully." }
+            return { status: 200, followed: false, message: "Unfollowed successfully." }
         }
         await this.followRepository.createOne({
             data: {
                 follower: user._id,
                 following: id
             }
-        })
-        return { followed: true, message: "Followed successfully." }
+        });
+        return { status: 201, followed: true, message: "Followed successfully." }
     }
+
     async suggestions({ limit }: { limit: number }, user: HUser) {
         const users = await this.userRepository.aggregate({
             pipeline: [{

@@ -5,14 +5,14 @@ const enum_1 = require("../../common/enum");
 const exception_1 = require("../../common/exception");
 const repository_1 = require("../../common/repository");
 const utils_1 = require("../../common/utils");
-const service_1 = require("./../../common/service");
+const service_1 = require("../../common/service");
 class UserService {
     userRepository;
     followRepository;
     cloudService;
     constructor() {
-        this.userRepository = new repository_1.UserRepository();
-        this.followRepository = new repository_1.FollowRepository();
+        this.userRepository = repository_1.userRepository;
+        this.followRepository = repository_1.followRepository;
         this.cloudService = service_1.cloudService;
     }
     selectsUserList() {
@@ -32,7 +32,7 @@ class UserService {
                 lean: true
             },
             select: "following createdAt -_id"
-        });
+        }) ?? [];
         const following = await this.followRepository.find({
             filter: { follower: user._id },
             options: {
@@ -40,20 +40,34 @@ class UserService {
                 lean: true
             },
             select: "following createdAt -_id"
-        });
+        }) ?? [];
         return {
             followers: followers?.map(ele => ({ ...ele.follower, followAt: ele.createdAt })),
             following: following?.map(ele => ({ ...ele.following, followingAt: ele.createdAt }))
         };
     }
     async uploadProfileImage(file, user) {
-        const key = await this.cloudService.uploadAsset({
+        if (user.image?.idImage) {
+            await this.cloudService.deleteAsset(user.image?.idImage);
+        }
+        const avatar = await this.cloudService.uploadImage({
             file,
-            folder: `user/${user._id.toString()}`
+            nameFolder: `profile/${user._id}/avatar`
         });
-        user.image = key;
+        user.image = avatar;
         await user.save();
-        return key;
+        return user;
+    }
+    async uploadCoverImage(files, user) {
+        if (user.coverImage?.length) {
+            await this.cloudService.deleteAssets(user.coverImage);
+        }
+        const coverImages = files?.length
+            ? await this.cloudService.uploadImages({ files, nameFolder: `profile/${user._id}/cover` })
+            : [];
+        user.coverImage = coverImages;
+        await user.save();
+        return user;
     }
     async profile(user) {
         const { followers, following } = await this.getFollowersAndFollowing(user);
@@ -111,8 +125,9 @@ class UserService {
         return { account, followers, following };
     }
     async follow({ id }, user) {
-        if (id === user._id.toString())
+        if (id === user._id.toString()) {
             throw new exception_1.NotFoundException("You can't follow yourself.");
+        }
         const existingFollow = await this.followRepository.findOneAndDelete({
             filter: {
                 follower: user._id,
@@ -120,7 +135,7 @@ class UserService {
             }
         });
         if (existingFollow) {
-            return { followed: false, message: "Unfollowed successfully." };
+            return { status: 200, followed: false, message: "Unfollowed successfully." };
         }
         await this.followRepository.createOne({
             data: {
@@ -128,7 +143,7 @@ class UserService {
                 following: id
             }
         });
-        return { followed: true, message: "Followed successfully." };
+        return { status: 201, followed: true, message: "Followed successfully." };
     }
     async suggestions({ limit }, user) {
         const users = await this.userRepository.aggregate({

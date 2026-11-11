@@ -20,3 +20,7 @@ __exportStar(require("./user.interface"), exports);
 __exportStar(require("./paginate.interface"), exports);
 __exportStar(require("./email.interface"), exports);
 __exportStar(require("./follow.interface"), exports);
+__exportStar(require("./signtures.interface"), exports);
+__exportStar(require("./post.interface"), exports);
+__exportStar(require("./comment.interface"), exports);
+__exportStar(require("./image.interface"), exports);

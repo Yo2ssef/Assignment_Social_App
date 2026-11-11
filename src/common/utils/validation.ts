@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { GenderUserEnum, languageEnum } from '../enum';
 import mongoose from 'mongoose';
-import { fileValidation } from './multer/local.multer.js';
+import { fileValidation } from './multer';
 
 export const generalValidationFields = {
     email: (lang: languageEnum) => z.email({
@@ -67,9 +67,11 @@ export const generalValidationFields = {
         originalname: z.string(),
         encoding: z.string(),
         mimetype: z.enum(fileValidation.image),
-        buffer: z.instanceof(Buffer),
         size: z.number(),
-        path: z.string()
+        buffer: z.instanceof(Buffer).optional(),
+        path: z.string().optional(),
+        destination: z.string().optional(),
+        filename:z.string().optional()
     }, {
         error: lang == languageEnum.EN ?
             "Invalid file object structure." :
@@ -80,5 +82,5 @@ export const generalValidationFields = {
         error: lang == languageEnum.EN ?
             "Content must be between 2 and 50000 characters." :
             "يجب أن يكون المحتوى بين 2 و 50000 حرف."
-    }).min(2).max(50000).optional(),
+    }).min(2).max(50000).optional()
 }

@@ -5,19 +5,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const middleware_1 = require("../../middleware");
-const auth_service_1 = __importDefault(require("./auth.service"));
-const auth_validation_1 = require("./auth.validation");
 const utils_1 = require("../../common/utils");
 const enum_1 = require("../../common/enum");
+const auth_service_1 = __importDefault(require("./auth.service"));
+const auth_validation_1 = require("./auth.validation");
 const router = (0, express_1.Router)({ strict: true, caseSensitive: true });
 router.post("/signup", (0, middleware_1.validation)(auth_validation_1.signupSchema), (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
-    const data = await auth_service_1.default.signUp(req.validated.body);
+    const data = await auth_service_1.default.signup(req.validated.body);
     return { status: 201, message: "Successfully signed up. Please confirm your email.", data };
 }));
-router.post("/signup-login-with-gmail", (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
+router.post("/signup-login-with-gmail", (0, middleware_1.validation)(auth_validation_1.signupOrLoginWithGoogleSchema), (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
     const issuer = (0, utils_1.issuerLink)(req.protocol, req.host);
-    const { status, data } = await auth_service_1.default.signUpOrLoginWithGoogle(req.body, issuer);
-    return { status, message: "Successfully logged in.", data };
+    const { status, message, data } = await auth_service_1.default.signupOrLoginWithGoogle(req.body, issuer);
+    return { status, message, data };
 }));
 router.post("/resend-confirm-email", (0, middleware_1.validation)(auth_validation_1.resendConfirmEmailSchema), (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
     await auth_service_1.default.resendConfirmEmail(req.validated.body);
@@ -49,7 +49,7 @@ router.post("/rotate-token", (0, middleware_1.authentication)(enum_1.TokenTypeEn
     const data = await auth_service_1.default.rotateToken(req.user, req.payload, issuer);
     return { message: "Successfully logged in.", data };
 }));
-router.post("/rotate-token", (0, middleware_1.validation)(auth_validation_1.logoutSchema), (0, middleware_1.authentication)(), (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
+router.post("/logout", (0, middleware_1.validation)(auth_validation_1.logoutSchema), (0, middleware_1.authentication)(), (0, middleware_1.ResponseFormatter)(async (req, res, next) => {
     const { message } = await auth_service_1.default.logout(req.user, req.payload, req.validated.body);
     return { message };
 }));

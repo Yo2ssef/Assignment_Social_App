@@ -20,3 +20,4 @@ __exportStar(require("./email"), exports);
 __exportStar(require("./issuer"), exports);
 __exportStar(require("./objectId"), exports);
 __exportStar(require("./multer"), exports);
+__exportStar(require("./image"), exports);

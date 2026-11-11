@@ -1,26 +1,27 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { ResponseFormatter, validation, authentication } from '../../middleware';
-import authService from './auth.service';
-import { confirmEmailSchema, loginSchema, logoutSchema, resendConfirmEmailSchema, resetPasswordSchema, signupSchema } from './auth.validation';
 import { issuerLink } from '../../common/utils';
 import { TokenTypeEnum } from '../../common/enum';
+import authService from './auth.service';
+import { confirmEmailSchema, loginSchema, logoutSchema, resendConfirmEmailSchema, resetPasswordSchema, signupOrLoginWithGoogleSchema, signupSchema } from './auth.validation';
 
 const router = Router({ strict: true, caseSensitive: true });
 
 router.post("/signup",
     validation(signupSchema),
     ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
-        const data = await authService.signUp(req.validated.body)
+        const data = await authService.signup(req.validated.body)
         return { status: 201, message: "Successfully signed up. Please confirm your email.", data }
     })
 )
 
 router.post("/signup-login-with-gmail",
+    validation(signupOrLoginWithGoogleSchema),
     ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
         const issuer = issuerLink(req.protocol, req.host)
-        const { status, data } = await authService.signUpOrLoginWithGoogle(req.body, issuer)
-        return { status, message: "Successfully logged in.", data }
+        const { status, message, data } = await authService.signupOrLoginWithGoogle(req.body, issuer)
+        return { status, message, data }
     })
 )
 
@@ -82,7 +83,7 @@ router.post("/rotate-token",
     })
 )
 
-router.post("/rotate-token",
+router.post("/logout",
     validation(logoutSchema),
     authentication(),
     ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {

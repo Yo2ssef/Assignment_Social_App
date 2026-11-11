@@ -10,7 +10,9 @@ export const authentication = (tokenType: TokenTypeEnum = TokenTypeEnum.ACCESS) 
         const token = req.headers["authorization"]
         const validateData = tokenSchema(lang).safeParse({ token })
 
-        if (!validateData.success) throw new BadRequestException("Validation Error.", validateData.error.issues)
+        if (!validateData.success) {
+            throw new BadRequestException("Validation Error.", validateData.error.issues)
+        }
         const { token: validatedToken } = validateData.data
 
         const { user, payload } = await tokenService.decodeToken({ token: validatedToken, tokenType })

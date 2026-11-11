@@ -1,5 +1,5 @@
 import nodemailer, { SMTPSentMessageInfo } from 'nodemailer';
-import { APP_EMAIL, APP_NAME, APP_PASSWORD } from '../../../config/config';
+import { APP_EMAIL, APP_NAME, APP_PASSWORD } from '../../../config';
 import { IEmail } from '../../interface';
 import { BadRequestException } from '../../exception';
 const transporter = nodemailer.createTransport({

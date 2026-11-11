@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tokenSchema = exports.logoutSchema = exports.resetPasswordSchema = exports.confirmEmailSchema = exports.resendConfirmEmailSchema = exports.signupSchema = exports.loginSchema = void 0;
+exports.tokenSchema = exports.logoutSchema = exports.resetPasswordSchema = exports.confirmEmailSchema = exports.resendConfirmEmailSchema = exports.signupSchema = exports.signupOrLoginWithGoogleSchema = exports.loginSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
 const utils_1 = require("../../common/utils");
 const enum_1 = require("../../common/enum");
@@ -20,6 +20,14 @@ const loginSchema = (lang) => {
     });
 };
 exports.loginSchema = loginSchema;
+const signupOrLoginWithGoogleSchema = (lang) => {
+    return zod_1.default.object({
+        body: zod_1.default.strictObject({
+            idToken: zod_1.default.string({ error: lang == enum_1.languageEnum.EN ? "Invalid idToken." : "رمز تعريف غير صالح." })
+        })
+    });
+};
+exports.signupOrLoginWithGoogleSchema = signupOrLoginWithGoogleSchema;
 const signupSchema = (lang) => {
     return zod_1.default.object({
         body: login(lang).extend({

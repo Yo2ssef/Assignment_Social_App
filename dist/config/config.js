@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AWS_SECRET_ACCESS_KEY = exports.AWS_ACCESS_KEY_ID = exports.AWS_BUCKET_NAME = exports.AWS_REGION = exports.ORIGINS = exports.WEB_CLIENT_ID = exports.REFRESH_TOKEN_EXPIRES_IN = exports.ACCESS_TOKEN_EXPIRES_IN = exports.ADMIN_REFRESH_TOKEN_SIGNATURE = exports.ADMIN_ACCESS_TOKEN_SIGNATURE = exports.USER_REFRESH_TOKEN_SIGNATURE = exports.USER_ACCESS_TOKEN_SIGNATURE = exports.IV_LENGTH = exports.ENC_KEY = exports.REDIS_URI = exports.DB_URI = exports.APP_NAME = exports.APP_PASSWORD = exports.APP_EMAIL = exports.PORT = exports.NODE_ENV = void 0;
+exports.API_SECRET = exports.API_KEY = exports.CLOUD_NAME = exports.ORIGINS = exports.WEB_CLIENT_ID = exports.REFRESH_TOKEN_EXPIRES_IN = exports.ACCESS_TOKEN_EXPIRES_IN = exports.ADMIN_REFRESH_TOKEN_SIGNATURE = exports.ADMIN_ACCESS_TOKEN_SIGNATURE = exports.USER_REFRESH_TOKEN_SIGNATURE = exports.USER_ACCESS_TOKEN_SIGNATURE = exports.IV_LENGTH = exports.ENC_KEY = exports.REDIS_URI = exports.DB_URI = exports.APP_NAME = exports.APP_PASSWORD = exports.APP_EMAIL = exports.PORT = exports.NODE_ENV = void 0;
 const node_path_1 = require("node:path");
 const dotenv_1 = require("dotenv");
 exports.NODE_ENV = process.env.NODE_ENV ?? "development";
@@ -21,7 +21,6 @@ exports.ACCESS_TOKEN_EXPIRES_IN = parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN ?
 exports.REFRESH_TOKEN_EXPIRES_IN = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN ?? "86400", 10);
 exports.WEB_CLIENT_ID = process.env.WEB_CLIENT_ID;
 exports.ORIGINS = process.env.ORIGINS?.split(",") || [];
-exports.AWS_REGION = process.env.AWS_REGION;
-exports.AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
-exports.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-exports.AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+exports.CLOUD_NAME = process.env.CLOUD_NAME;
+exports.API_KEY = process.env.API_KEY;
+exports.API_SECRET = process.env.API_SECRET;

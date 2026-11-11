@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+import { UserIdTypeObject } from '../types';
 export interface IFollow {
-    follower: mongoose.Types.ObjectId;
-    following: mongoose.Types.ObjectId;
+    follower: UserIdTypeObject;
+    following: UserIdTypeObject;
     createdAt?: string;
     updatedAt?: string;
 }

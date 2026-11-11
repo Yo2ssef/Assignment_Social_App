@@ -13,7 +13,7 @@ const hasUploadedFiles = (req) => {
     }
     return false;
 };
-const uploadMiddleware = ({ isRequired = true, multerMiddleware, customPath = "general", validation = [] }) => {
+const uploadMiddleware = ({ isRequired = true, multerMiddleware, validation = [] }) => {
     return (req, res, next) => {
         multerMiddleware(req, res, async (error) => {
             if (error) {
@@ -25,7 +25,7 @@ const uploadMiddleware = ({ isRequired = true, multerMiddleware, customPath = "g
                     next(new exception_1.BadRequestException("File is required."));
                     return;
                 }
-                await (0, utils_1.processMulterUpload)({ req, customPath, validation });
+                await (0, utils_1.processMulterUpload)({ req, validation });
                 next();
             }
             catch (error) {

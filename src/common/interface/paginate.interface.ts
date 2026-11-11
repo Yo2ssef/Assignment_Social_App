@@ -3,5 +3,5 @@ export interface IPaginate<T> {
     pages: number,
     page: number,
     limit: number,
-    data: T[] | undefined | null
+    docs: T[] | undefined | null
 }

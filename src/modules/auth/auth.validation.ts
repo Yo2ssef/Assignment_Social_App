@@ -14,6 +14,13 @@ export const loginSchema = (lang: languageEnum) => {
         body: login(lang)
     })
 }
+export const signupOrLoginWithGoogleSchema = (lang: languageEnum) => {
+    return z.object({
+        body: z.strictObject({
+            idToken: z.string({ error: lang == languageEnum.EN ? "Invalid idToken." : "رمز تعريف غير صالح." })
+        })
+    })
+}
 export const signupSchema = (lang: languageEnum) => {
     return z.object({
         body: login(lang).extend({

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.suggestionsSchema = exports.userProfileImageSchema = exports.allUsersSchema = exports.getUserSchema = exports.userDataSchemaToUpdate = exports.tokenSchema = void 0;
+exports.suggestionsSchema = exports.coverImageSchema = exports.userProfileImageSchema = exports.allUsersSchema = exports.getUserSchema = exports.userDataSchemaToUpdate = exports.tokenSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
 const utils_1 = require("../../common/utils");
 const { userName, phone, dateOfBirth, gender, jwt, id, file } = utils_1.generalValidationFields;
@@ -36,8 +36,8 @@ const allUsersSchema = (lang) => {
     return zod_1.default.object({
         query: zod_1.default.strictObject({
             userName: zod_1.default.string().min(3).max(20).regex(/^[a-zA-Z]+(?: [a-zA-Z]+)?$/).optional(),
-            page: zod_1.default.coerce.number().optional(),
-            limit: zod_1.default.coerce.number().optional()
+            page: zod_1.default.coerce.number().default(1),
+            limit: zod_1.default.coerce.number().default(5)
         })
     });
 };
@@ -48,6 +48,12 @@ const userProfileImageSchema = (lang) => {
     });
 };
 exports.userProfileImageSchema = userProfileImageSchema;
+const coverImageSchema = (lang) => {
+    return zod_1.default.object({
+        files: zod_1.default.array(file({ lang, fieldname: "attachment" })).max(2).optional()
+    });
+};
+exports.coverImageSchema = coverImageSchema;
 const suggestionsSchema = (lang) => {
     return zod_1.default.object({
         query: zod_1.default.strictObject({

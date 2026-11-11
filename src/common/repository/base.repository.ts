@@ -58,11 +58,11 @@ export abstract class DatabaseRepository<T> {
         options?: QueryOptions<T> | null | undefined,
         page?: number,
         limit?: number
-    }): Promise<IPaginate<T>> {
+    }): Promise<IPaginate<HydratedDocument<T>>> {
         const skip = (page - 1) * limit
         const count = await this.countDocuments({})
         const pages = Math.ceil(count / limit)
-        const data = await this.find({
+        const docs = await this.find({
             filter,
             options: {
                 ...options,
@@ -71,7 +71,7 @@ export abstract class DatabaseRepository<T> {
             },
             select
         })
-        return { count, pages, page, limit, data }
+        return { count, pages, page, limit, docs }
     }
 
     async findOne({ filter, projection, select, options }: {

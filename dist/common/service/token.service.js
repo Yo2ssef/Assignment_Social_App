@@ -7,17 +7,17 @@ exports.tokenService = exports.TokenService = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_crypto_1 = require("node:crypto");
 const enum_1 = require("../enum");
-const config_1 = require("../../config/config");
+const config_1 = require("../../config");
 const exception_1 = require("../exception");
 const repository_1 = require("./../repository");
-const cache_service_1 = require("./cache.service");
+const index_1 = require("./index");
 const utils_1 = require("../utils");
 class TokenService {
     userRepository;
     cacheService;
     constructor() {
-        this.userRepository = new repository_1.UserRepository;
-        this.cacheService = cache_service_1.cacheService;
+        this.userRepository = repository_1.userRepository;
+        this.cacheService = index_1.cacheService;
     }
     userBaseRevokeTokenKey({ userId }) {
         return `User::${userId.toString()}::RevokeToken`;
@@ -88,17 +88,20 @@ class TokenService {
     }
     async decodeToken({ token, tokenType = enum_1.TokenTypeEnum.ACCESS }) {
         const decoded = jsonwebtoken_1.default.decode(token);
-        if (!decoded?.aud || !Array.isArray(decoded.aud) || !decoded.aud.length)
+        if (!decoded?.aud || !Array.isArray(decoded.aud) || !decoded.aud.length) {
             throw new exception_1.BadRequestException("Missing token.");
+        }
         const audience = decoded.aud[0];
-        if (typeof audience !== 'number' && typeof audience !== 'string')
+        if (typeof audience !== "number" && typeof audience !== "string") {
             throw new exception_1.BadRequestException("Missing token.");
+        }
         const payload = await this.verifyToken({
             token,
             secret: this.getTokenSignature({ tokenType, role: audience })
         });
-        if (!payload?.sub || !payload?.jti || typeof payload.iat !== 'number')
+        if (!payload?.sub || !payload?.jti || typeof payload.iat !== "number") {
             throw new exception_1.BadRequestException("Missing token.");
+        }
         if (await this.cacheService.exist({
             key: this.userRevokeTokenKey({ userId: payload.sub, jti: payload.jti })
         })) {
@@ -115,8 +118,9 @@ class TokenService {
         return { user, payload };
     }
     async createRevokeToken({ payload }) {
-        if (!payload.sub || !payload.jti || typeof payload.iat !== 'number')
+        if (!payload.sub || !payload.jti || typeof payload.iat !== "number") {
             throw new exception_1.BadRequestException("Missing token payload.");
+        }
         const now = Math.ceil(Date.now() / 1000);
         const sessionExpiresAt = payload.iat + config_1.REFRESH_TOKEN_EXPIRES_IN;
         const ttl = sessionExpiresAt - now;

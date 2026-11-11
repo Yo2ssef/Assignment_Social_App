@@ -7,15 +7,15 @@ const repository_1 = require("../../common/repository");
 const security_1 = require("../../common/security");
 const service_1 = require("../../common/service");
 const utils_1 = require("../../common/utils");
-const config_1 = require("../../config/config");
+const config_1 = require("../../config");
 class AuthService {
     userRepository;
     cacheService;
     client;
     tokenService;
     constructor() {
-        this.userRepository = new repository_1.UserRepository();
         this.client = new google_auth_library_1.OAuth2Client();
+        this.userRepository = repository_1.userRepository;
         this.cacheService = service_1.cacheService;
         this.tokenService = service_1.tokenService;
     }
@@ -98,16 +98,20 @@ class AuthService {
         }
         return payload;
     }
-    async signUpOrLoginWithGoogle({ idToken }, issuer) {
+    async signupOrLoginWithGoogle({ idToken }, issuer) {
         const { name, email, picture } = await this.verifyGoogleIdToken(idToken);
         const existingAccount = await this.userRepository.findOne({
             filter: { email: email }
         });
         if (existingAccount) {
             if (existingAccount.provider !== enum_1.ProviderUserEnum.GOOGLE) {
-                throw new exception_1.ConflictException("Invalid account provider.");
+                throw new exception_1.ConflictException("This email is already registered with a different provider. Please use the appropriate login method.");
             }
-            return { status: 200, data: await this.tokenService.createLoginCredentials({ user: existingAccount, issuer }) };
+            return {
+                status: 200,
+                message: " Successfully logged in.",
+                data: await this.tokenService.createLoginCredentials({ user: existingAccount, issuer })
+            };
         }
         const user = await this.userRepository.createOne({
             data: {
@@ -118,23 +122,20 @@ class AuthService {
                 image: picture
             }
         });
-        return { status: 201, data: await this.tokenService.createLoginCredentials({ user, issuer }) };
+        return {
+            status: 201,
+            message: " Successfully signed up and logged in.",
+            data: await this.tokenService.createLoginCredentials({ user, issuer })
+        };
     }
-    async signUp({ userName, email, password, gender, dateOfBirth, phone }) {
+    async signup({ userName, email, password, gender, dateOfBirth, phone }) {
         const existingAccount = await this.userRepository.findOne({
             filter: { email }
         });
         if (existingAccount)
             throw new exception_1.ConflictException("Email already exists.");
         const createdUser = await this.userRepository.createOne({
-            data: {
-                userName,
-                email,
-                password,
-                gender,
-                dateOfBirth,
-                phone
-            }
+            data: { userName, email, password, gender, dateOfBirth, phone }
         });
         await this.sendEmailOtp({ email, subject: enum_1.EmailSubjectEnums.CONFIRM_EMAIL });
         return createdUser;

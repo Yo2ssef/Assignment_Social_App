@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { IFollow } from '../../common/interface';
 import { HydratedDocument } from 'mongoose';
 
-const followSchema = new mongoose.Schema(
+const followSchema = new mongoose.Schema<IFollow>(
     {
         follower: {
             type: mongoose.Schema.Types.ObjectId,

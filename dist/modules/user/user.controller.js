@@ -9,15 +9,27 @@ const middleware_2 = require("../../middleware");
 const user_validation_1 = require("./user.validation");
 const user_service_1 = __importDefault(require("./user.service"));
 const utils_1 = require("../../common/utils");
+const enum_1 = require("../../common/enum");
 const router = (0, express_1.Router)({ strict: true, caseSensitive: true });
-router.patch("/profile-image", (0, middleware_1.authentication)(), (0, middleware_1.uploadMiddleware)({
+router.patch("/profile-image", (0, middleware_1.uploadMiddleware)({
     isRequired: true,
-    multerMiddleware: (0, utils_1.localFileUpload)({}).single("avatar"),
+    multerMiddleware: (0, utils_1.localFileUpload)({
+        storageApproach: enum_1.StorageApproachEnum.DISK
+    }).single("avatar"),
     validation: utils_1.fileValidation.image,
-    customPath: "user"
-}), (0, middleware_1.validation)(user_validation_1.userProfileImageSchema), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
-    const data = await user_service_1.default.uploadProfileImage(req.file, req.user);
-    return { message: " Profile image uploaded successfully.", data };
+}), (0, middleware_1.authentication)(), (0, middleware_1.validation)(user_validation_1.userProfileImageSchema), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
+    const data = await user_service_1.default.uploadProfileImage(req.validated.file, req.user);
+    return { message: "Profile image uploaded successfully.", data };
+}));
+router.patch("/upload-cover-image", (0, middleware_1.uploadMiddleware)({
+    isRequired: false,
+    multerMiddleware: (0, utils_1.localFileUpload)({
+        storageApproach: enum_1.StorageApproachEnum.DISK
+    }).array("attachment", 2),
+    validation: utils_1.fileValidation.image,
+}), (0, middleware_1.authentication)(), (0, middleware_1.validation)(user_validation_1.coverImageSchema), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
+    const data = await user_service_1.default.uploadCoverImage(req.validated.files, req.user);
+    return { message: "Cover image uploaded successfully.", data };
 }));
 router.get("/", (0, middleware_1.authentication)(), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
     const user = await user_service_1.default.profile(req.user);
@@ -35,12 +47,12 @@ router.get("/suggestions", (0, middleware_1.validation)(user_validation_1.sugges
     const users = await user_service_1.default.suggestions(req.validated.query, req.user);
     return { data: users };
 }));
+router.patch("/follow/:id", (0, middleware_1.validation)(user_validation_1.getUserSchema), (0, middleware_1.authentication)(), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
+    const { status, message, followed } = await user_service_1.default.follow(req.validated.params, req.user);
+    return { status, message, data: { followed } };
+}));
 router.get("/:id", (0, middleware_1.validation)(user_validation_1.getUserSchema), (0, middleware_1.authentication)(), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
     const data = await user_service_1.default.getUser(req.validated.params, req.user);
     return { data };
-}));
-router.patch("/follow/:id", (0, middleware_1.validation)(user_validation_1.getUserSchema), (0, middleware_1.authentication)(), (0, middleware_2.ResponseFormatter)(async (req, res, next) => {
-    const { message, followed } = await user_service_1.default.follow(req.validated.params, req.user);
-    return { status: 201, message, data: { followed } };
 }));
 exports.default = router;

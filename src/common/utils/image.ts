@@ -1,0 +1,1 @@
+export const imageConstants = { idImage: String, urlImage: String };

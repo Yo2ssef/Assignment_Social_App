@@ -26,7 +26,6 @@ export const REFRESH_TOKEN_EXPIRES_IN: number = parseInt(process.env.REFRESH_TOK
 export const WEB_CLIENT_ID: string = process.env.WEB_CLIENT_ID as string
 export const ORIGINS: string[] = process.env.ORIGINS?.split(",") || []
 
-export const AWS_REGION: string = process.env.AWS_REGION as string
-export const AWS_BUCKET_NAME: string = process.env.AWS_BUCKET_NAME as string
-export const AWS_ACCESS_KEY_ID: string = process.env.AWS_ACCESS_KEY_ID as string
-export const AWS_SECRET_ACCESS_KEY: string = process.env.AWS_SECRET_ACCESS_KEY as string
+export const CLOUD_NAME: string = process.env.CLOUD_NAME as string
+export const API_KEY: string = process.env.API_KEY as string
+export const API_SECRET: string = process.env.API_SECRET as string

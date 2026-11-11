@@ -15,12 +15,10 @@ const hasUploadedFiles = (req: Request) => {
 export const uploadMiddleware = ({
     isRequired = true,
     multerMiddleware,
-    customPath = "general",
     validation = []
 }: {
     isRequired?: boolean,
     multerMiddleware: RequestHandler,
-    customPath?: string,
     validation: string[]
 }) => {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -34,9 +32,9 @@ export const uploadMiddleware = ({
                     next(new BadRequestException("File is required."))
                     return;
                 }
-                await processMulterUpload({ req, customPath, validation })
+                await processMulterUpload({ req, validation })
                 next()
-            } catch (error: any) {
+            } catch (error) {
                 next(error);
             }
         })

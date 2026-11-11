@@ -4,3 +4,7 @@ export * from './user.interface';
 export * from './paginate.interface';
 export * from './email.interface';
 export * from './follow.interface';
+export * from './signtures.interface';
+export * from './post.interface';
+export * from './comment.interface';
+export * from './image.interface';

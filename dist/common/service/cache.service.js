@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cacheService = exports.CacheService = void 0;
 const redis_1 = require("redis");
-const config_1 = require("../../config/config");
+const config_1 = require("../../config");
 class CacheService {
     client;
     constructor() {

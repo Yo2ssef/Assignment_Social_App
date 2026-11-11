@@ -1,34 +1,49 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cloudService = exports.CloudService = void 0;
-const client_s3_1 = require("@aws-sdk/client-s3");
-const node_crypto_1 = require("node:crypto");
-const exception_1 = require("../exception");
-const config_1 = require("../../config/config");
+const cloudinary_1 = require("cloudinary");
+const config_1 = require("../../config");
+const promises_1 = require("node:fs/promises");
 class CloudService {
-    client;
+    client = cloudinary_1.v2;
     constructor() {
-        this.client = new client_s3_1.S3Client({
-            region: config_1.AWS_REGION,
-            credentials: {
-                accessKeyId: config_1.AWS_ACCESS_KEY_ID,
-                secretAccessKey: config_1.AWS_SECRET_ACCESS_KEY
-            }
+        this.client.config({
+            cloud_name: config_1.CLOUD_NAME,
+            api_key: config_1.API_KEY,
+            api_secret: config_1.API_SECRET
         });
     }
-    async uploadAsset({ Bucket = config_1.AWS_BUCKET_NAME, ACL = client_s3_1.ObjectCannedACL.private, file, folder = "general", }) {
-        const Key = `${config_1.APP_NAME}/${folder}/${(0, node_crypto_1.randomUUID)()}__${file.originalname}`;
-        const command = new client_s3_1.PutObjectCommand({
-            Bucket,
-            Key,
-            ACL,
-            Body: file.buffer
-        });
-        if (!command.input.Key) {
-            throw new exception_1.BadRequestException("Fail to upload this asset.");
+    async uploadAsset({ file, nameFolder = "users" }) {
+        try {
+            return await this.client.uploader.upload(file.path, {
+                folder: `${config_1.APP_NAME}/${nameFolder}`
+            });
         }
-        await this.client.send(command);
-        return command.input.Key;
+        finally {
+            await (0, promises_1.unlink)(file.path).catch(() => { });
+        }
+    }
+    async uploadAssets({ files, nameFolder = "users" }) {
+        return Promise.all(files.map(file => this.uploadAsset({ file, nameFolder })));
+    }
+    async deleteAsset(idImage) {
+        return await this.client.uploader.destroy(idImage);
+    }
+    async deleteAssets(images) {
+        return this.client.api.delete_resources(images.map(image => image.idImage));
+    }
+    async uploadImage({ file, nameFolder = "users" }) {
+        const uploadedFile = await this.uploadAsset({
+            file,
+            nameFolder
+        });
+        return {
+            idImage: uploadedFile.public_id,
+            urlImage: uploadedFile.secure_url
+        };
+    }
+    async uploadImages({ files, nameFolder = "users" }) {
+        return Promise.all(files.map(file => this.uploadImage({ file, nameFolder })));
     }
 }
 exports.CloudService = CloudService;

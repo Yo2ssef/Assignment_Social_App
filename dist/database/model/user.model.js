@@ -7,6 +7,8 @@ exports.UserModel = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const enum_1 = require("../../common/enum");
 const security_1 = require("../../common/security");
+const exception_1 = require("../../common/exception");
+const utils_1 = require("../../common/utils");
 const userSchema = new mongoose_1.default.Schema({
     firstName: {
         type: String,
@@ -45,8 +47,8 @@ const userSchema = new mongoose_1.default.Schema({
     },
     phone: String,
     dateOfBirth: Date,
-    image: String,
-    coverImage: [String],
+    image: utils_1.imageConstants,
+    coverImage: [utils_1.imageConstants],
     isPrivate: {
         type: Boolean,
         default: false
@@ -74,13 +76,18 @@ userSchema.pre("save", async function () {
     if (this?.phone && this.isModified("phone"))
         this.phone = (await (0, security_1.encrypt)(this.phone));
 });
-userSchema.pre("findOneAndUpdate", async function () {
+userSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], async function () {
     const updated = this.getUpdate();
     if (updated?.phone)
         updated.phone = (await (0, security_1.encrypt)(updated.phone));
 });
-userSchema.post("findOne", async function (doc) {
+userSchema.post(["findOne", "find"], async function (doc) {
     if (doc?.phone)
         doc.phone = await (0, security_1.decrypt)(doc.phone);
+});
+userSchema.pre("validate", function () {
+    if (this.provider === enum_1.ProviderUserEnum.GOOGLE && this.password) {
+        throw new exception_1.BadRequestException("Password should not be provided for Google provider.");
+    }
 });
 exports.UserModel = mongoose_1.default.models.User || mongoose_1.default.model("User", userSchema);

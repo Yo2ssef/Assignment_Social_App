@@ -7,7 +7,7 @@ exports.generalValidationFields = void 0;
 const zod_1 = require("zod");
 const enum_1 = require("../enum");
 const mongoose_1 = __importDefault(require("mongoose"));
-const local_multer_js_1 = require("./multer/local.multer.js");
+const multer_1 = require("./multer");
 exports.generalValidationFields = {
     email: (lang) => zod_1.z.email({
         error: lang == enum_1.languageEnum.EN ?
@@ -62,10 +62,12 @@ exports.generalValidationFields = {
         }),
         originalname: zod_1.z.string(),
         encoding: zod_1.z.string(),
-        mimetype: zod_1.z.enum(local_multer_js_1.fileValidation.image),
-        buffer: zod_1.z.instanceof(Buffer),
+        mimetype: zod_1.z.enum(multer_1.fileValidation.image),
         size: zod_1.z.number(),
-        path: zod_1.z.string()
+        buffer: zod_1.z.instanceof(Buffer).optional(),
+        path: zod_1.z.string().optional(),
+        destination: zod_1.z.string().optional(),
+        filename: zod_1.z.string().optional()
     }, {
         error: lang == enum_1.languageEnum.EN ?
             "Invalid file object structure." :
@@ -75,5 +77,5 @@ exports.generalValidationFields = {
         error: lang == enum_1.languageEnum.EN ?
             "Content must be between 2 and 50000 characters." :
             "يجب أن يكون المحتوى بين 2 و 50000 حرف."
-    }).min(2).max(50000).optional(),
+    }).min(2).max(50000).optional()
 };

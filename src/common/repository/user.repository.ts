@@ -4,3 +4,4 @@ import { UserModel } from './../../database/model';
 export class UserRepository extends DatabaseRepository<IUser> {
     constructor() { super(UserModel) }
 }
+export const userRepository = new UserRepository()

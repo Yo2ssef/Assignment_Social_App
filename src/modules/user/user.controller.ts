@@ -1,24 +1,41 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { authentication, uploadMiddleware, validation } from '../../middleware';
 import { ResponseFormatter } from '../../middleware';
-import { allUsersSchema, getUserSchema, suggestionsSchema, userDataSchemaToUpdate, userProfileImageSchema } from './user.validation';
+import { allUsersSchema, coverImageSchema, getUserSchema, suggestionsSchema, userDataSchemaToUpdate, userProfileImageSchema, } from './user.validation';
 import userService from './user.service'
 import { fileValidation, localFileUpload } from '../../common/utils';
-import { IFile } from '../../common/types';
+import { StorageApproachEnum } from '../../common/enum';
 const router = Router({ strict: true, caseSensitive: true });
 
 router.patch("/profile-image",
-    authentication(),
     uploadMiddleware({
         isRequired: true,
-        multerMiddleware: localFileUpload({}).single("avatar"),
+        multerMiddleware: localFileUpload({
+            storageApproach: StorageApproachEnum.DISK
+        }).single("avatar"),
         validation: fileValidation.image,
-        customPath: "user"
     }),
+    authentication(),
     validation(userProfileImageSchema),
     ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
-        const data = await userService.uploadProfileImage(req.file as IFile, req.user)
-        return { message: " Profile image uploaded successfully.", data }
+        const data = await userService.uploadProfileImage(req.validated.file, req.user)
+        return { message: "Profile image uploaded successfully.", data }
+    })
+)
+
+router.patch("/upload-cover-image",
+    uploadMiddleware({
+        isRequired: false,
+        multerMiddleware: localFileUpload({
+            storageApproach: StorageApproachEnum.DISK
+        }).array("attachment", 2),
+        validation: fileValidation.image,
+    }),
+    authentication(),
+    validation(coverImageSchema),
+    ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
+        const data = await userService.uploadCoverImage(req.validated.files, req.user)
+        return { message: "Cover image uploaded successfully.", data }
     })
 )
 
@@ -57,6 +74,15 @@ router.get("/suggestions",
     })
 )
 
+router.patch("/follow/:id",
+    validation(getUserSchema),
+    authentication(),
+    ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
+        const { status, message, followed } = await userService.follow(req.validated.params, req.user)
+        return { status, message, data: { followed } }
+    })
+)
+
 router.get("/:id",
     validation(getUserSchema),
     authentication(),
@@ -66,12 +92,4 @@ router.get("/:id",
     })
 )
 
-router.patch("/follow/:id",
-    validation(getUserSchema),
-    authentication(),
-    ResponseFormatter(async (req: Request, res: Response, next: NextFunction) => {
-        const { message, followed } = await userService.follow(req.validated.params, req.user)
-        return { status: 201, message, data: { followed } }
-    })
-)
 export default router

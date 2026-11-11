@@ -1,4 +1,5 @@
 import { GenderUserEnum, ProviderUserEnum, RoleUserEnum } from '../enum';
+import { IImage } from './index';
 export interface IUser {
     userName?: string;
     firstName: string;
@@ -10,11 +11,11 @@ export interface IUser {
     provider?: ProviderUserEnum;
     phone?: string;
     dateOfBirth?: string;
-    image?: String;
-    coverImage?: String[];
+    image?: IImage;
+    coverImage?: IImage[];
     confirmEmail?: Date;
     changeCredentialsTime?: Date;
     createdAt?: string;
     updatedAt?: string;
-    isPrivate?:boolean;
+    isPrivate?: boolean;
 }
